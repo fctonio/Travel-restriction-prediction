@@ -18,7 +18,7 @@ def daterange(start_date, end_date):
         yield start_date + timedelta(n)
 
 def filecreator(start_date):
-    path = f"Data/uk/Covid_cases_uk_total.csv"
+    path = "Data/uk/Covid_cases_uk_total.csv"
     my_file = Path(path)
     if my_file.is_file():
         return 

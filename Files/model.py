@@ -37,10 +37,13 @@ def estimate(path, region):
 
     con_df_pred = pd.concat([df, df_pred])
 
+    con_df_pred.index = pd.to_datetime(con_df_pred.index).strftime("%Y-%m-%d")
     X = con_df_pred[["const", "t" ,"t2"]]
-    y = con_df_pred[region] + 0.25 * np.random.normal(size= len(con_df_pred[region]))
+    y = con_df_pred[region] + 0.1 * np.random.normal(size= len(con_df_pred[region]))
     lr = sm.OLS(y, X, missing='drop').fit()
     con_df_pred[f'pre_{region}'] = lr.predict(X)
+
+    pre_region = f'pre_{region}'
 
     fig, ax = plt.subplots(figsize=(10,6))
 
@@ -52,14 +55,18 @@ def estimate(path, region):
             con_df_pred[region],
             color="red")
 
-    fig.show()
-    
-    pre_region = f'pre_{region}'
+    date = None
 
     if con_df_pred[region].max() > 50:
-        return f'{region} has already passed the critical threshold of 50 new cases per 100 000 people over the last 7 days on the {con_df_pred[con_df_pred[region].gt(50)].index[0]}'    
+        date = con_df_pred[con_df_pred[region].gt(50)].index[0]
     if con_df_pred[f'pre_{region}'].max() > 50:
-        return f'We estimate that the critical threshold in {region} of 50 new cases per 100 000 people over the last 7 days will be passed on the {con_df_pred[con_df_pred[pre_region].gt(50)].index[0]}. We advise you to be back in Germany several days before that date.'
-    else:
-        return f'We don\'t think {region} will be a Risikogebiet in the next 20 days.'
+        date = con_df_pred[con_df_pred[pre_region].gt(50)].index[0]
+    return date, fig
+
+    # if con_df_pred[region].max() > 50:
+    #     return f'{region} has already passed the critical threshold of 50 new cases per 100 000 people over the last 7 days on the {con_df_pred[con_df_pred[region].gt(50)].index[0]}'    
+    # if con_df_pred[f'pre_{region}'].max() > 50:
+    #     return f'We estimate that the critical threshold in {region} of 50 new cases per 100 000 people over the last 7 days will be passed on the {con_df_pred[con_df_pred[pre_region].gt(50)].index[0]}. We advise you to be back in Germany several days before that date.'
+    # else:
+    #     return f'We don\'t think {region} will be a Risikogebiet in the next 20 days.'
 
